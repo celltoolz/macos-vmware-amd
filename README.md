@@ -206,13 +206,13 @@ By default, VMware Workstation does not allow macOS as a guest OS. **Auto-Unlock
 
 Download the latest release from [GitHub: paolo-projects/auto-unlocker](https://github.com/paolo-projects/auto-unlocker/releases). Extract the zip — you'll see `Unlocker.exe`, a log file location, `backup/`, and `tools/` folders.
 
-![Auto-Unlocker extracted folder — Unlocker.exe ready to run](images/1775450065000_37_auto_unlocker_gui.png)
+![VMware Workstation Pro 17 home screen — click Create a New Virtual Machine](images/1775450065000_36_vmware_home_screen.png)
 
 ### Step 2: Run Unlocker.exe
 
 Double-click `Unlocker.exe`. The GUI will open and auto-detect your VMware installation paths.
 
-![Auto-Unlocker v2.0.0 GUI with VMware paths auto-filled and Patch button ready](images/1775450065000_38_vmware_create_new_vm.png)
+![Auto-Unlocker extracted folder — Unlocker.exe ready to run](images/1775450065000_37_auto_unlocker_gui.png)
 
 Verify the VMware install location and X64 location fields are populated, then click **Patch**. The tool will download required macOS tools and patch VMware's executables. When it finishes, close the window.
 
@@ -230,7 +230,7 @@ With VMware patched, we can now create the virtual machine. The wizard has quite
 
 Open VMware. From the home screen, click **Create a New Virtual Machine**.
 
-![VMware Workstation Pro 17 home screen — click Create a New Virtual Machine](images/1775450065000_36_vmware_home_screen.png)
+![Auto-Unlocker v2.0.0 GUI with VMware paths auto-filled and Patch button ready](images/1775450065000_38_vmware_create_new_vm.png)
 
 ### Step 2: Choose Custom configuration
 
