@@ -691,7 +691,9 @@ macOS will block the VMware kernel extension and show this dialog:
 
 Click **Open Security Preferences**. In the Security & Privacy panel you'll see:
 
-> "System software from developer 'VMware, Inc.' was blocked from loading."
+> "System software from developer 'VMware, Inc.' was blocked from loading." <br>
+
+Click on the **Lock** in the bottom left corner to allow changes then click on **Allow**.
 
 ![Security & Privacy — Allow button for VMware system extension](images/1775512559726_image.png)
 
@@ -699,13 +701,13 @@ Click **Not Now**. We'll restart after the installer has finished:
 
 ![Restart required before new system extensions can be used](images/1775512575470_image.png)
 
-Click **Not Now**.
+#### Step 5: Verify installation and Restart
 
-#### Step 5: Verify installation
-
-After the VM reboots, the installer will confirm success:
+The installer will confirm success:
 
 ![VMware Tools installation successful](images/1775512589478_image.png)
+
+Now click on Restart to finish setting up VMWare Tools.
 
 After this restart, display scaling and clipboard sharing between your Windows host and the macOS guest will work properly.
 
