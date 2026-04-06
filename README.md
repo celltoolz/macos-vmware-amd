@@ -1,6 +1,6 @@
 # 🍎 macOS in VMware Workstation Pro on Windows (AMD CPU) — A Survivor's Guide
 
-> **TL;DR:** Yes, you can run macOS on VMware on an AMD system. No, it won't be easy.  
+> **TL;DR:** Yes, you can run macOS on VMware on an AMD system. No, it won't be easy.
 > This guide documents what actually worked — including the failures — so you don't have to spend your weekend on it.
 
 ![macOS Monterey 12.7.6 running in VMware on an AMD Windows host](images/preview__3_.webp)
@@ -373,12 +373,6 @@ cpuid.0.ebx = "0111:0101:0110:1110:0110:0101:0100:0111"
 cpuid.0.ecx = "0110:1100:0110:0101:0111:0100:0110:1110"
 cpuid.0.edx = "0100:1001:0110:0101:0110:1110:0110:1001"
 
-# Spoofs Intel Core i7 (Ivy Bridge) family/model/stepping and feature flags
-cpuid.1.eax = "0000:0000:0000:0001:0000:0110:0111:0001"
-cpuid.1.ebx = "0000:0010:0000:0001:0000:1000:0000:0000"
-cpuid.1.ecx = "1000:0010:1001:1000:0010:0010:0000:0011"
-cpuid.1.edx = "0000:0111:1000:1011:1111:1011:1111:1111"
-
 # Prevents AMD-specific MCE behavior from triggering spurious kernel panics
 mce.enable = "FALSE"
 
@@ -386,11 +380,19 @@ mce.enable = "FALSE"
 ulm.disableMitigations = "TRUE"
 ```
 
+For Intel you can use these CPUIDs:
+
+```ini
+# Spoofs Intel Core i7 (Ivy Bridge) family/model/stepping and feature flags
+cpuid.1.eax = "0000:0000:0000:0001:0000:0110:0111:0001"
+cpuid.1.ebx = "0000:0010:0000:0001:0000:1000:0000:0000"
+cpuid.1.ecx = "1000:0010:1001:1000:0010:0010:0000:0011"
+cpuid.1.edx = "0000:0111:1000:1011:1111:1011:1111:1111"
+```
+
 You can verify the file looks right by checking the bottom section in your editor. Here's how the actual working `.vmx` looks, showing `numvcpus`, the CPUID block, and the final lines:
 
 ![VMX file in Notepad — numvcpus=4 and CPUID lines visible with search highlighting](images/1775450064997_21_vmx_numvcpus_4.png)
-
-![VMX file bottom — ulm.disableMitigations=TRUE and mce.enable=FALSE confirmed at end of file](images/1775450064997_22_vmx_mce_enable_false.png)
 
 ### What each setting does
 
