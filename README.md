@@ -1,6 +1,6 @@
 # 🍎 macOS in VMware Workstation Pro on Windows (AMD CPU) — A Survivor's Guide
 
-> **TL;DR:** Yes, you can run macOS on VMware on an AMD system. No, it won't be easy.  
+> **TL;DR:** Yes, you can run macOS on VMware on an AMD system. No, it won't be easy.
 > This guide documents what actually worked — including the failures — so you don't have to spend your weekend on it.
 
 ![macOS Monterey 12.7.6 running in VMware on an AMD Windows host](images/preview__3_.webp)
@@ -373,12 +373,6 @@ cpuid.0.ebx = "0111:0101:0110:1110:0110:0101:0100:0111"
 cpuid.0.ecx = "0110:1100:0110:0101:0111:0100:0110:1110"
 cpuid.0.edx = "0100:1001:0110:0101:0110:1110:0110:1001"
 
-# Spoofs Intel Core i7 (Ivy Bridge) family/model/stepping and feature flags
-cpuid.1.eax = "0000:0000:0000:0001:0000:0110:0111:0001"
-cpuid.1.ebx = "0000:0010:0000:0001:0000:1000:0000:0000"
-cpuid.1.ecx = "1000:0010:1001:1000:0010:0010:0000:0011"
-cpuid.1.edx = "0000:0111:1000:1011:1111:1011:1111:1111"
-
 # Prevents AMD-specific MCE behavior from triggering spurious kernel panics
 mce.enable = "FALSE"
 
@@ -386,11 +380,19 @@ mce.enable = "FALSE"
 ulm.disableMitigations = "TRUE"
 ```
 
+For Intel you can use these CPUIDs:
+
+```ini
+# Spoofs Intel Core i7 (Ivy Bridge) family/model/stepping and feature flags
+cpuid.1.eax = "0000:0000:0000:0001:0000:0110:0111:0001"
+cpuid.1.ebx = "0000:0010:0000:0001:0000:1000:0000:0000"
+cpuid.1.ecx = "1000:0010:1001:1000:0010:0010:0000:0011"
+cpuid.1.edx = "0000:0111:1000:1011:1111:1011:1111:1111"
+```
+
 You can verify the file looks right by checking the bottom section in your editor. Here's how the actual working `.vmx` looks, showing `numvcpus`, the CPUID block, and the final lines:
 
 ![VMX file in Notepad — numvcpus=4 and CPUID lines visible with search highlighting](images/1775450064997_21_vmx_numvcpus_4.png)
-
-![VMX file bottom — ulm.disableMitigations=TRUE and mce.enable=FALSE confirmed at end of file](images/1775450064997_22_vmx_mce_enable_false.png)
 
 ### What each setting does
 
@@ -707,74 +709,6 @@ After setup you'll have a proper macOS login screen with your local account:
 - [QEMU for Windows](https://qemu.weilnetz.de/w64/) — disk image conversion tool
 - [Original guide this was adapted from](https://bluebubbles.app/docs/server/advanced/macos-virtualization/running-a-macos-vm/deploying-macos-in-vmware-on-windows-full-guide) — bluebubbles-docs by BlueBubbles
 - [AMD OSX community](https://amd-osx.com/) — community knowledge for AMD macOS
-
----
-
-## Images folder structure
-
-Place all screenshots in an `images/` folder next to this `README.md`:
-
-```
-your-repo/
-├── README.md
-└── images/
-    ├── preview__3_.webp              ← hero: Monterey desktop
-    ├── preview__4_.webp              ← Monterey installer loading
-    ├── preview__5_.webp              ← Monterey language selection
-    ├── preview__1_.webp              ← Apple logo "29 minutes remaining"
-    ├── preview__2_.webp              ← Setup Assistant country selection
-    ├── preview.webp                  ← Monterey disk selection (osx)
-    ├── Screenshot_2026-04-05_214117.png   ← login screen
-    ├── Screenshot_2026-04-05_214224.png   ← About This Mac 12.7.6
-    ├── 01_ventura_language_selection.png
-    ├── 02_ventura_installing.png
-    ├── 03_troubleshoot_kernel_panic.png
-    ├── 04_vmx_cpuid_lines.png
-    ├── 05_troubleshoot_prohibited_symbol.png
-    ├── 06_side_channel_mitigations_dialog.png
-    ├── 07_sata_cdrom_dialog.png
-    ├── 08_disk_utility_select_drive.png
-    ├── 09_disk_utility_erase_complete.png
-    ├── 13_apple_logo_booting.png
-    ├── 16_disk_utility_first_aid.png
-    ├── 17_first_aid_running.png
-    ├── 18_first_aid_complete.png
-    ├── 19_bless_command_terminal.png
-    ├── 20_bless_command_success.png
-    ├── 41_wizard_install_os_later.png
-    ├── 42_wizard_select_macos12.png
-    ├── 43_wizard_name_macos12.png
-    ├── 44_wizard_1_processor_4_cores.png
-    ├── 45_wizard_memory_8gb.png
-    ├── 46_wizard_nat_networking.png
-    ├── 47_wizard_use_existing_disk.png
-    ├── 48_wizard_browse_recovery_vmdk.png
-    ├── 49_wizard_keep_existing_format.png
-    ├── 50_wizard_vm_summary.png
-    ├── 51_macos12_vm_created.png
-    ├── 52_add_hardware_hard_disk.png
-    ├── 53_add_disk_create_new.png
-    ├── 54_add_disk_80gb_capacity.png
-    ├── 1775450064997_21_vmx_numvcpus_4.png
-    ├── 1775450064997_22_vmx_mce_enable_false.png
-    ├── 1775450064997_23_monterey_opencore_guide.png
-    ├── 1775450064997_24_monterey_macrecovery_command.png
-    ├── 1775450064997_40_wizard_hardware_compatibility.png
-    ├── 1775450064998_25_monterey_downloading.png
-    ├── 1775450064998_27_basesystem_dmg_in_documents.png
-    ├── 1775450064998_28_qemu_install_components.png
-    ├── 1775450064998_29_qemu_install_complete.png
-    ├── 1775450064999_30_create_vmdk_guide_step.png
-    ├── 1775450064999_31_qemu_convert_command.png
-    ├── 1775450064999_32_qemu_convert_success.png
-    ├── 1775450064999_33_recovery_vmdk_created.png
-    ├── 1775450064999_34_vmware_version_info.png
-    ├── 1775450064999_35_auto_unlocker_guide.png
-    ├── 1775450065000_36_vmware_home_screen.png
-    ├── 1775450065000_37_auto_unlocker_gui.png
-    ├── 1775450065000_38_vmware_create_new_vm.png
-    └── 1775450065000_39_wizard_custom_config.png
-```
 
 ---
 
