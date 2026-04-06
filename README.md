@@ -87,14 +87,30 @@ macOS on VMware requires spoofing the CPU to look like Intel hardware (via CPUID
 
 The failure isn't obvious because Ventura doesn't fail immediately. It gets through the installer, runs the progress bar to completion, and then kernel panics on the first real reboot. When you add CPUID spoof values to try to fix it, the failure mode changes to the prohibited symbol (🚫) — a *different* and harder failure. We documented this entire sequence. See [Troubleshooting](#troubleshooting--the-ventura-experiment) for the full story.
 
-**macOS Monterey (12)** predates the stricter validation and is stable on AMD VMware installs with the correct CPUID configuration.
+### The root cause: TSC instability on AMD Ryzen mobile CPUs
+
+After going through the whole Ventura failure sequence, we found the underlying technical reason documented in the [QuickEMU project wiki](https://github.com/quickemu-project/quickemu/wiki/03-Create-macOS-virtual-machines#tsc-instability-on-amd-ryzen-mobile-cpus):
+
+> macOS Ventura (13), Sonoma (14), and Sequoia (15) have stricter TSC (Time Stamp Counter) requirements than earlier versions. On certain AMD Ryzen mobile CPUs, the TSC is marked as unstable during boot calibration, causing these newer macOS versions to freeze or fail to boot with "Non-monotonic time" errors.
+
+**Affected CPUs:**
+- AMD Ryzen 4000U series (Renoir)
+- AMD Ryzen 5000U series (Cezanne/Lucienne)
+- Some AMD Ryzen Zen 4 mobile chips (7945HX, Z1 Extreme)
+
+**Not affected:**
+- AMD Ryzen 6000U series (Rembrandt)
+- Intel CPUs
+- AMD desktop CPUs (generally)
+
+This is why CPUID spoofing alone can't fix Ventura — the kernel panic isn't about CPU vendor identity, it's about the TSC being flagged as unreliable at a lower level than the spoof can reach. **macOS Monterey (12)** predates the stricter TSC requirements and is stable on AMD VMware installs with the correct CPUID configuration.
 
 | macOS Version | AMD VMware Compatibility | Notes |
 |---|---|---|
 | Monterey (12) | ✅ Reliable | **Use this.** Stable with correct CPUID spoof. Tested: 12.7.6. |
-| Ventura (13) | ⚠️ Unreliable | Installs, then kernel panics on first reboot. Not worth the fight. |
-| Sonoma (14) | ❌ Very difficult | Not recommended for AMD VMware. |
-| Big Sur (11) | ✅ OK | Works, but older. Monterey is the better choice. |
+| Ventura (13) | ⚠️ Unreliable | Installs, then kernel panics on first reboot. TSC instability on AMD Ryzen mobile CPUs. |
+| Sonoma (14) | ❌ Very difficult | Same TSC issue, stricter still. Not recommended for AMD VMware. |
+| Big Sur (11) | ✅ OK | Predates TSC requirements. Works, but older. Monterey is the better choice. |
 
 ---
 
@@ -573,7 +589,13 @@ The SATA error (sata0:1 can't connect) is a secondary symptom — VMware is tryi
 
 **10. We pivoted to Monterey.**
 
-After exhausting the standard fixes, the diagnosis was clear: Ventura's XNU kernel performs CPU validation that CPUID spoofing cannot satisfy on AMD under VMware 17. This isn't a misconfiguration — it's a compatibility wall. The same CPUID values that work on Monterey don't help Ventura because Ventura validates something deeper.
+After exhausting the standard fixes, the diagnosis was clear: Ventura's XNU kernel performs CPU validation that CPUID spoofing cannot satisfy on AMD under VMware 17. This isn't a misconfiguration — it's a compatibility wall.
+
+> **Why CPUID spoofing can't fix it — the actual root cause**
+>
+> After the fact, we found the technical explanation in the [QuickEMU project wiki](https://github.com/quickemu-project/quickemu/wiki/03-Create-macOS-virtual-machines#tsc-instability-on-amd-ryzen-mobile-cpus): macOS Ventura (13) and newer have stricter **TSC (Time Stamp Counter)** requirements than earlier versions. On affected AMD Ryzen mobile CPUs, the TSC is flagged as unstable during boot calibration, causing the kernel to panic with "Non-monotonic time" errors. CPUID spoofing tricks macOS about the CPU *vendor*, but it can't fix the TSC instability — that's a lower-level clock hardware issue that the kernel detects independently. Monterey predates the stricter TSC requirements, which is why the exact same CPUID config that fails on Ventura works perfectly on Monterey.
+>
+> Affected CPUs: Ryzen 4000U (Renoir), 5000U (Cezanne/Lucienne), some Zen 4 mobile chips. Desktop AMD CPUs are generally not affected.
 
 **Monterey worked on the first try with the same config.**
 
@@ -675,14 +697,14 @@ After setup you'll have a proper macOS login screen with your local account:
 
 | Step | Key point |
 |---|---|
-| Use Monterey, not Ventura | Ventura installs, then kernel panics on first reboot on AMD. Not fixable with CPUID alone. |
+| Use Monterey, not Ventura | Ventura's stricter TSC requirements cause kernel panics on AMD Ryzen mobile CPUs. Not fixable with CPUID spoofing. |
 | QEMU command syntax matters | Use the full PowerShell path: `& "C:\Program Files\qemu\qemu-img.exe" convert -O vmdk -o compat6 BaseSystem.dmg recovery.vmdk` |
 | Output is `recovery.vmdk` | Not `BaseSystem.vmdk`. The filename matters when you browse for it in the wizard. |
 | `smc.version = "0"` is non-negotiable | Without it, the VM won't boot at all. |
 | CPUID spoof is non-negotiable | Without it, macOS sees AMD and refuses to continue. |
 | `mce.enable = "FALSE"` matters on AMD | Prevents spurious kernel panics from AMD MCE behavior mismatches. |
 | Format the disk FIRST in Disk Utility | Do this before clicking Install. Use APFS + GUID Partition Map. |
-| Adding CPUID to Ventura makes it worse | It changes the failure from kernel panic to prohibited symbol. Both are dead ends. |
+| Adding CPUID to Ventura makes it worse | CPUID fixes the vendor string check but can't fix TSC instability. Changes the failure from kernel panic to prohibited symbol. Both are dead ends. |
 | Take a snapshot before anything | Snapshots are cheap. Recovery from a bad install is not. |
 
 ---
@@ -694,6 +716,7 @@ After setup you'll have a proper macOS login screen with your local account:
 - [QEMU for Windows](https://qemu.weilnetz.de/w64/) — disk image conversion tool
 - [Original guide this was adapted from](https://bluebubbles.app/docs/server/advanced/macos-virtualization/running-a-macos-vm/deploying-macos-in-vmware-on-windows-full-guide) — bluebubbles-docs by BlueBubbles
 - [AMD OSX community](https://amd-osx.com/) — community knowledge for AMD macOS
+- [QuickEMU wiki — TSC instability on AMD Ryzen mobile CPUs](https://github.com/quickemu-project/quickemu/wiki/03-Create-macOS-virtual-machines#tsc-instability-on-amd-ryzen-mobile-cpus) — source of the TSC root cause explanation
 
 ---
 
