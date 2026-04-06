@@ -646,15 +646,68 @@ Name it `Fresh Install — Pre-Tools`. This is your safe rollback point.
 
 ### 🔧 Install VMware Tools
 
-VMware Tools enables proper display scaling, clipboard sharing between host and guest, and better performance.
+VMware Tools enables proper display scaling, clipboard sharing between host and guest, and better performance. The official VMware Tools installer is not bundled with VMware Workstation and Broadcom's support portal is notoriously painful to navigate, so we'll download the ISO directly from Broadcom's CDN.
 
-1. In VMware, go to **VM → Install VMware Tools**
-2. A disk image will mount inside macOS
-3. Open it and run the **Install VMware Tools** package
-4. Approve the system extension in **System Preferences → Security & Privacy**
-5. Restart the VM
+#### Step 1: Download the darwin ISO
 
-After VMware Tools installs, the display will scale to a proper resolution and clipboard sync will work.
+On your **Windows host**, open a browser and go to:
+
+```
+https://packages-prod.broadcom.com/tools/frozen/darwin/
+```
+
+You'll see two ISO options. **Download `darwin.iso`** — not `darwinPre15.iso`. Despite what the name suggests, `darwinPre15.iso` is flagged as too old by the installer on Monterey. `darwin.iso` (updated November 2024) works correctly.
+
+#### Step 2: Mount the ISO in VMware
+
+With the macOS VM powered on, go to **VM → Settings → CD/DVD (SATA)** in VMware:
+
+- Select **Use ISO image file**
+- Browse to the downloaded `darwin.iso`
+- Check **Connected**
+- Click **OK**
+
+or
+
+- Download the iso directy into OSX
+- Mount the ISO by double clicking in downloads
+- Click VMWare Tools on the Desktop to run the installer
+
+The VMware Tools disk will mount on the macOS desktop.
+
+#### Step 3: Run the installer
+
+On the macOS desktop, open the **VMware Tools** disk and double-click **Install VMware Tools**.
+
+![VMware Tools installer welcome screen — Introduction step](images/1775512503352_image.png)
+
+Click **Continue** through the installer steps.
+
+#### Step 4: Approve the system extension
+
+macOS will block the VMware kernel extension and show this dialog:
+
+![System Extension Blocked — VMware Inc. extension needs approval](images/1775512535190_image.png)
+
+Click **Open Security Preferences**. In the Security & Privacy panel you'll see:
+
+> "System software from developer 'VMware, Inc.' was blocked from loading."
+
+![Security & Privacy — Allow button for VMware system extension](images/1775512559726_image.png)
+
+Click **Not Now**. We'll restart after the installer has finished:
+
+![Restart required before new system extensions can be used](images/1775512575470_image.png)
+
+Click **Not Now**.
+
+#### Step 5: Verify installation
+
+After the VM reboots, the installer will confirm success:
+
+![VMware Tools installation successful](images/1775512589478_image.png)
+
+After this restart, display scaling and clipboard sharing between your Windows host and the macOS guest will work properly.
 
 ### 🖥️ Set a useful resolution
 
