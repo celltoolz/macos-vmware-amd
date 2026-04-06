@@ -297,11 +297,11 @@ On the **Select a Disk** page, choose **"Use an existing virtual disk"**.
 
 Click **Next**, then **Browse** and navigate to `C:\Users\<username>\Documents\recovery.vmdk`.
 
-![Wizard: recovery.vmdk path entered in the existing disk field](images/48_wizard_browse_recovery_vmdk.png)
+![VMware: Convert to newer format dialog — click Keep Existing Format](images/49_wizard_keep_existing_format.png)
 
 VMware will ask if you want to convert the disk to a newer format. Click **Keep Existing Format**.
 
-![VMware: Convert to newer format dialog — click Keep Existing Format](images/49_wizard_keep_existing_format.png)
+![Wizard: summary showing macOS 12 VM config with recovery.vmdk](images/50_wizard_vm_summary.png)
 
 ### Step 12: Review and finish
 
@@ -311,7 +311,7 @@ Review the summary. You should see:
 - Network: NAT
 - 4 CPU cores
 
-![Wizard: summary showing macOS 12 VM config with recovery.vmdk](images/50_wizard_vm_summary.png)
+![VM Settings after creation — recovery VMDK visible as 3 GB Hard Disk (SATA)](images/51_macos12_vm_created.png)
 
 Click **Finish**. **Do not power on the VM yet.**
 
@@ -321,15 +321,13 @@ The recovery VMDK is the installer/boot disk. macOS needs a separate disk to act
 
 In VMware, right-click the new VM and select **Settings**. The Hardware tab shows the current devices.
 
-![VM Settings after creation — recovery VMDK visible as 3 GB Hard Disk (SATA)](images/51_macos12_vm_created.png)
+![Add Hardware Wizard: SATA disk type selected](images/52_add_hardware_hard_disk.png)
 
 Click **Add...** → Select **Hard Disk** → Click **Next** → Select **SATA** (recommended).
 
-![Add Hardware Wizard: SATA disk type selected](images/52_add_hardware_hard_disk.png)
+![Add Hardware Wizard: Create a new virtual disk](images/53_add_disk_create_new.png)
 
 Select **Create a new virtual disk**.
-
-![Add Hardware Wizard: Create a new virtual disk](images/53_add_disk_create_new.png)
 
 Set the size to **80 GB** (VMware's recommended size for macOS 12). Select **Store virtual disk as a single file**.
 
@@ -363,36 +361,24 @@ Open it in a proper text editor. **Use Notepad++ or VS Code.** Do not use standa
 Add the following lines to the **end** of your `.vmx` file:
 
 ```ini
-# Required: disables VMware's SMC version check — without this, macOS will not boot at all
 smc.version = "0"
-
-# AMD CPUID spoof — encodes "GenuineIntel" in the vendor string registers
-# macOS checks for this string; AMD CPUs return "AuthenticAMD" which macOS rejects
 cpuid.0.eax = "0000:0000:0000:0000:0000:0000:0000:1011"
 cpuid.0.ebx = "0111:0101:0110:1110:0110:0101:0100:0111"
 cpuid.0.ecx = "0110:1100:0110:0101:0111:0100:0110:1110"
 cpuid.0.edx = "0100:1001:0110:0101:0110:1110:0110:1001"
-
-# Prevents AMD-specific MCE behavior from triggering spurious kernel panics
-mce.enable = "FALSE"
-
-# Disables side-channel mitigations that conflict with macOS CPU assumptions on AMD
-ulm.disableMitigations = "TRUE"
-```
-
-For Intel you can use these CPUIDs:
-
-```ini
-# Spoofs Intel Core i7 (Ivy Bridge) family/model/stepping and feature flags
 cpuid.1.eax = "0000:0000:0000:0001:0000:0110:0111:0001"
 cpuid.1.ebx = "0000:0010:0000:0001:0000:1000:0000:0000"
 cpuid.1.ecx = "1000:0010:1001:1000:0010:0010:0000:0011"
 cpuid.1.edx = "0000:0111:1000:1011:1111:1011:1111:1111"
+mce.enable = "FALSE"
+ulm.disableMitigations = "TRUE"
 ```
 
 You can verify the file looks right by checking the bottom section in your editor. Here's how the actual working `.vmx` looks, showing `numvcpus`, the CPUID block, and the final lines:
 
 ![VMX file in Notepad — numvcpus=4 and CPUID lines visible with search highlighting](images/1775450064997_21_vmx_numvcpus_4.png)
+<sup>(note: Image is missing ulm.disableMitigations = "TRUE")</sup>
+
 
 ### What each setting does
 
@@ -406,11 +392,10 @@ You can verify the file looks right by checking the bottom section in your edito
 
 ### Side channel mitigations dialog
 
-After adding `ulm.disableMitigations = "TRUE"`, VMware may show this warning on first boot:
+Make sure your .vmx config contains `ulm.disableMitigations = "TRUE"`, VMware may show this warning on first boot otherwise:
 
 ![VMware side channel mitigations warning dialog — click OK and proceed](images/06_side_channel_mitigations_dialog.png)
 
-This is expected and informational. Click **OK**. The mitigations are intentionally disabled because they cause problems for macOS on AMD. For a local dev/test VM, this is an acceptable tradeoff.
 
 ### If your .vmx edits keep disappearing
 
@@ -426,23 +411,23 @@ Add each key-value pair there — these survive Settings saves.
 
 ### Step 1: Boot the VM
 
-Power on the VM. You'll see the VMware boot screen, then the Apple logo with a progress bar.
+Power on the VM. You'll see the VMware boot screen, then the Apple logo with a progress bar similar to the image below.
 
 ![Apple logo with progress bar — Monterey recovery booting for the first time](images/13_apple_logo_booting.png)
 
 > ⏱️ The first boot from the recovery VMDK takes 3–5 minutes to reach the installer. Don't assume it's frozen unless nothing has changed for more than 10 minutes.
 
-### Step 2: The macOS Monterey installer loads
+### Step 2: Select language
 
-After the progress bar completes, the macOS installer will appear — first loading installation information, then showing the familiar Monterey logo.
-
-![macOS Monterey installer loading — "Loading Installation Information..."](images/preview__4_.webp)
-
-### Step 3: Select language
-
-Choose your language and click the arrow to continue.
+After the progress bar completes, the macOS installer will appear — Choose your language and click the arrow to continue.
 
 ![macOS Monterey language selection — English selected](images/preview__5_.webp)
+
+### Step 3: The macOS Monterey installer loads
+
+Frst loading installation information, then showing the familiar Monterey logo.
+
+![macOS Monterey installer loading — "Loading Installation Information..."](images/preview__4_.webp)
 
 ### Step 4: Open Disk Utility and format the install disk — DO THIS FIRST
 
